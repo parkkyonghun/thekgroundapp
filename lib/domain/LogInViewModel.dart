@@ -46,7 +46,6 @@ class LoginController extends GetxController {
     authManger = Get.put(AuthenticationManager());
   }
 
-
   Future onLogin({required String email, required String password}) async {
     // Create login data
     LoginData loginData = LoginData(email, password, true);

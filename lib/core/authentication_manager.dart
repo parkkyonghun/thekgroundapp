@@ -23,6 +23,7 @@ class AuthenticationManager extends GetxController with CacheManager {
 
       void checkLoginStatus() {
         final token = getToken();
+        print(token);
         if(token != null){
           isLogged.value = true;
         }

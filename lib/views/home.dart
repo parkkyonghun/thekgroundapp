@@ -82,12 +82,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Au
                       },
                       child: CircleAvatar(
                         child: Image.asset(
-                          Assets.imagesUser,
+                          Assets.imagesAppIcon,
                           scale: 4,
                         ),
                       ),
                     );
                   }),
+              IconButton(onPressed: () => authManager.logOut(), icon: const Icon(Icons.logout_rounded))
             ]),
         body: PageView(
           controller: _pageController,

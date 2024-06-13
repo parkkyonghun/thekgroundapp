@@ -1,6 +1,7 @@
-import 'package:attendance/utils/selectDate.dart';
+import 'package:attendance/core/date_selector_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 
 class DateSelector extends StatelessWidget {
@@ -23,27 +24,30 @@ class DateSelector extends StatelessWidget {
       return SizedBox(
         height: 100, // Adjust height as needed
         child: PageView.builder(
-          controller: PageController(initialPage: controller.selectedWeekIndex.value),
+          controller: PageController(initialPage: controller.getPageForDate(controller.selectedDate.value)),
           onPageChanged: (index) {
-            controller.selectWeek(index);
+            final date = controller.getDateForPage(index);
+            controller.selectDate(date);
           },
-          itemBuilder: (context, weekIndex) {
-            return _buildDateSelector(weekIndex);
+          itemCount: controller.totalDays,
+          itemBuilder: (context, pageIndex) {
+            final date = controller.getDateForPage(1);
+            return _buildDateSelector(date);
           },
         ),
       );
     });
   }
 
-  Widget _buildDateSelector(int weekIndex) {
-    DateTime firstDayOfMonth = DateTime(DateTime.now().year, controller.selectedMonthIndex.value + 1, 1);
-    DateTime firstDayOfWeek = firstDayOfMonth.add(Duration(days: (weekIndex * 7) - firstDayOfMonth.weekday + 1));
+  Widget _buildDateSelector(DateTime date) {
+    DateTime firstDayOfMonth = DateTime(DateTime.now().year, date.month, 1);
+    DateTime firstDayOfWeek = firstDayOfMonth.add(Duration(days: (date.weekday * 7) - firstDayOfMonth.weekday + 1));
     List<Widget> dateCards = [];
 
     for (int i = 0; i < 7; i++) {
       DateTime date = firstDayOfWeek.add(Duration(days: i));
-      String formattedDate = date.day.toString().padLeft(2, '0');
-      String formattedDay = _getDayOfWeek(date.weekday);
+      String formattedDate = DateFormat('dd').format(date);
+      String formattedDay = DateFormat('EEE').format(date);
       bool isPastOrToday = date.isBefore(DateTime.now().add(const Duration(days: 1)));
 
       dateCards.add(
@@ -66,29 +70,7 @@ class DateSelector extends StatelessWidget {
     );
   }
 
-  String _getDayOfWeek(int weekday) {
-    switch (weekday) {
-      case 1:
-        return 'Mon';
-      case 2:
-        return 'Tue';
-      case 3:
-        return 'Wed';
-      case 4:
-        return 'Thu';
-      case 5:
-        return 'Fri';
-      case 6:
-        return 'Sat';
-      case 7:
-        return 'Sun';
-      default:
-        return '';
-    }
-  }
-
-  Widget _buildDateCard(String dateNum, String day, {bool selected = false, required DateTime date, bool isEnabled = true}) {
-   print(selected);
+  Widget _buildDateCard(String dateName, String day, {bool selected = false, required DateTime date, bool isEnabled = true}) {
     return GestureDetector(
       onTap: isEnabled ? () => controller.selectDate(date) : null,
       child: Container(
@@ -109,7 +91,7 @@ class DateSelector extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              dateNum,
+              dateName,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -129,10 +111,7 @@ class DateSelector extends StatelessWidget {
   }
 
   Widget _buildMonthSelector() {
-    final List<String> monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
+    final List<String> monthNames = DateFormat().dateSymbols.MONTHS;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -143,9 +122,12 @@ class DateSelector extends StatelessWidget {
           itemCount: monthNames.length,
           itemBuilder: (context, index) {
             return Obx(() {
-              final isCurrentMonth = index == controller.selectedMonthIndex.value;
+              final isCurrentMonth = index == controller.selectedDate.value.month - 1;
               return GestureDetector(
-                onTap: () => controller.selectMonth(index),
+                onTap: () {
+                    final firstDayOfMonth = DateTime(controller.selectedDate.value.year);
+                    controller.selectDate(firstDayOfMonth);
+                },
                 child: _buildMonthCard(monthNames[index], isCurrentMonth),
               );
             });
@@ -156,6 +138,7 @@ class DateSelector extends StatelessWidget {
   }
 
   Widget _buildMonthCard(String monthName, bool isCurrentMonth) {
+    final firstDayOfMonth = DateTime(controller.selectedDate.value.year);
     return Container(
       width: 50,
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -174,7 +157,7 @@ class DateSelector extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            monthName,
+            monthName.substring(0,3),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -182,7 +165,7 @@ class DateSelector extends StatelessWidget {
             ),
           ),
           Text(
-            '2024',
+            firstDayOfMonth.year.toString(),
             style: TextStyle(
               color: isCurrentMonth ? Colors.white : Colors.black54,
             ),

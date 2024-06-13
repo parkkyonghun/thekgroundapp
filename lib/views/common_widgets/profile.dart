@@ -14,45 +14,60 @@ class ProfileSection extends StatefulWidget {
 
 class _ProfileSectionState extends State<ProfileSection> {
   final LoginController controller = Get.find();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    controller.authManger.checkLoginStatus();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<LoginController>(
-      builder: (context) {
-        return Row(
-          children: [
-            Obx(() => CircleAvatar(
+    return GetBuilder<LoginController>(builder: (context) {
+      print(
+          'Image URL: ${AppConstants.BASE_URL.toString()}/${controller.photo.value}');
+
+      return Row(
+        children: [
+          Obx(() => CircleAvatar(
               radius: 30,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(30.0),
                 child: CachedNetworkImage(
-                  imageUrl: '${AppConstants.BASE_URL.toString()}/${controller.photo.value}',
+                  imageUrl:
+                      '${AppConstants.BASE_URL.toString()}/${controller.photo.value}',
                   filterQuality: FilterQuality.low,
-                  errorWidget: (context, url, error) => Image.asset(Assets.imagesUser),
+                  placeholder: (context, url) =>
+                      const CircularProgressIndicator(), // Show progress indicator while loading
+                  errorWidget: (context, url, error) =>
+                      Image.asset(Assets.imagesUser), // Display error image
+                ),
+              ))),
+
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Obx(
+                () => Text(
+                  controller.employee['name'] ?? controller.username.value,
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
-              )
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Obx(() => Text(
-                  controller.employee['name'] ?? controller.username.value ,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Obx(() => Text(
+              Obx(
+                () => Text(
                   controller.position['name'] ?? controller.userEmail.value,
                   style: const TextStyle(color: Colors.black54),
                 ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            const Icon(Icons.notifications, color: Colors.black54),
-          ],
-        );
-      }
-    );
+              ),
+            ],
+          ),
+          // const Spacer(),
+          // const Icon(Icons.notifications, color: Colors.black54),
+        ],
+      );
+    });
   }
 }
